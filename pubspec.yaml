@@ -1,0 +1,16 @@
+name: alm
+description: A Dart lib, Cool? Try use.
+version: 0.0.1
+homepage: https://gitee.com/darto/alm
+
+## pub publish --server=https://pub.dartlang.org
+
+environment:
+  sdk: '>=2.8.1 <3.0.0'
+
+dependencies:
+  http: ^0.12.1
+  convert: ^2.1.1
+
+dev_dependencies:
+  test: ^1.14.4
