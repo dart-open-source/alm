@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'data/random.data.dart';
@@ -13,6 +14,7 @@ int any2int(dynamic o) {
     return 0;
   }
 }
+
 double any2double(dynamic o) {
   try {
     return double.parse(o.toString());
@@ -21,9 +23,9 @@ double any2double(dynamic o) {
   }
 }
 
-String priceStr(dynamic o){
-  var od=any2double(o);
-  return '\$'+od.toStringAsFixed(2);
+String priceStr(dynamic o) {
+  var od = any2double(o);
+  return '\$' + od.toStringAsFixed(2);
 }
 
 String int2hex(int n, {int padLeft = 8}) {
@@ -300,18 +302,21 @@ String randomString(int length) {
 }
 
 String randomName() => randomListElement(randomDataFirstNames) + ' ' + randomListElement(randomDataLastNames);
+
 String randomCountry() => randomListElement(randomDataCountries);
+
 String randomBahamaArea() => randomListElement(randomDataBahamaAreas);
+
 String randomAddress() => '#${kRandom.nextInt(9999)} ${randomBahamaArea()}';
 
 String tokenGen(String pass, {Duration duration}) {
   var time = duration ?? Duration(days: 7);
-  return str2base64('$pass:' + time.inMilliseconds.toString() + ":${timeint()}");
+  return str2base64([pass, time.inMilliseconds, timeint()].join(':'));
 }
 
-bool tokenCheck(String token) {
+bool tokenExpired(String token) {
   try {
-    var tokens = base642str(token).split(":");
+    var tokens = base642str(token).split(':');
     var now = timeint();
     var expire = int.parse(tokens[1]);
     var time = int.parse(tokens[2]);
@@ -330,4 +335,29 @@ String firstUpperCase(String str) {
   return str;
 }
 
+Map fromDataDecode(String elem) {
+  var map = {};
+  elem = elem.replaceAll('form-data; ', '');
+  var list = elem.split(';');
+  list.forEach((element) {
+    var ls = element.split('=');
+    map[ls.first.trim()] = ls.last.replaceAll('"', '').trim();
+  });
+  return map;
+}
 
+void gitIgnoreUpdate(String path) {
+  if (File('.gitignore').existsSync()) {
+    var liens = File('.gitignore').readAsLinesSync();
+    if (!liens.contains(path)) {
+      File('.gitignore').writeAsStringSync(
+          [
+            '',
+            '#$path at ${timestampStr()}',
+            path,
+            '',
+          ].join('\n'),
+          mode: FileMode.append);
+    }
+  }
+}
