@@ -325,6 +325,19 @@ bool tokenExpired(String token) {
     return false;
   }
 }
+Map tokenDecode(String token) {
+  try {
+    var res={};
+    var tokens = base642str(token).split(':');
+    res['pass'] = tokens[0];
+    res['now'] = timeint();
+    res['expire'] = int.parse(tokens[1]);
+    res['time'] = int.parse(tokens[2]);
+    return res;
+  } catch (e) {
+    return null;
+  }
+}
 
 int lerpInt(int minV, int maxV, int value) {
   return max(minV, min(value, maxV));
