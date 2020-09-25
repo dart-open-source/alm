@@ -22,6 +22,10 @@ class Alm {
 
   static Future<dynamic> delaySecond([int second = 1,dynamic computation]) async => await Future.delayed(Duration(seconds: second),computation);
 
+
+  ///===========================Type===========================
+
+
   static String type([dynamic o]) {
     if (o == null) return 'null';
     return '${o.runtimeType}';
@@ -55,7 +59,17 @@ class Alm {
 
   static bool isString(dynamic o) => o is String;
 
+
+  ///===========================File===========================
+
   static int fileSize(File target, {int defaultSize = -1}) => target.existsSync() ? target.lengthSync() : defaultSize;
+
+  File file(String path, {bool autoDir = false}) {
+    var r = File(path);
+    if (autoDir && !r.parent.existsSync()) r.parent.createSync(recursive: true);
+    return r;
+  }
+
 
   static int any2int(dynamic o, {int defaultVal = -1}) => int.tryParse(o.toString().split('.').first) ?? defaultVal;
 
