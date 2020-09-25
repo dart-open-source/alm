@@ -22,6 +22,7 @@ class Alm {
 
   static Future<dynamic> delaySecond([int second = 1,dynamic computation]) async => await Future.delayed(Duration(seconds: second),computation);
 
+  static var onTimeoutReturnNull = () => null;
 
   ///===========================Type===========================
 
