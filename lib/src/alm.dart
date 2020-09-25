@@ -268,6 +268,26 @@ class Alm {
       return false;
     }
   }
+  static Map tokenDecode(String token) {
+    try {
+      var res=<String,dynamic>{};
+      var tokens = base642str(token).split(':');
+      if(tokens.length!=3) throw Exception('tokens len not 3?!@');
+      var now = timeint();
+      var expire = int.parse(tokens[1]);
+      var time = int.parse(tokens.last);
+
+      res['time']=time;
+      res['pass']=tokens.first;
+      res['now']=now;
+      res['expire']=expire;
+      res['expired']=(now - time) < expire;
+
+      return res;
+    } catch (e) {
+      return null;
+    }
+  }
 
   static int lerpInt(int minV, int maxV, int value) {
     return max(minV, min(value, maxV));
