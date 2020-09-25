@@ -1,4 +1,4 @@
-const randomDataFirstNames = [
+const Alm_DataNames = [
   'Alm',
   'Aaliyah',
   'Aaron',
@@ -3008,9 +3008,7 @@ const randomDataFirstNames = [
   'Zola',
   'Zora',
   'Zula'
-];
-
-const randomDataLastNames = [
+  //=========================Last names
   'Abbott',
   'Abernathy',
   'Abshire',
@@ -3489,7 +3487,7 @@ const randomDataLastNames = [
   'Zulauf'
 ];
 
-const randomDataCountries = [
+const Alm_DataCountries = [
   'Afghanistan',
   'Albania',
   'Algeria',
@@ -3685,28 +3683,4 @@ const randomDataCountries = [
   'Yemen',
   'Zambia',
   'Zimbabwe'
-];
-
-const randomDataBahamaAreas = [
-  'North Andros',
-  'Great Inagua',
-  'South Andros',
-  'Great Abaco',
-  'Grand Bahama',
-  'Long Island',
-  'Acklins',
-  'Eleuthera',
-  'Cat Island',
-  'Mayaguana',
-  'Crooked Island',
-  'New Providence',
-  'Exuma',
-  'San Salvador Island',
-  'Little Inagua',
-  'Rum Cay',
-  'Little Abaco',
-  'Samana Cay',
-  'Ragged Island',
-  'Berry Islands',
-  'Bimini',
 ];
