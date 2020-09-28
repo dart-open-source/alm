@@ -58,6 +58,16 @@ class Alm {
 
   static bool isString(dynamic o) => o is String;
 
+  static Map map(dynamic input){
+    dynamic res;
+    if(input is Map){
+      res=input;
+    }else if(input is String) {
+      res=jsonDecode(input);
+    }
+    return res?Map.from(res):null;
+  }
+
   ///
   ///=========================== File ===========================
   ///
