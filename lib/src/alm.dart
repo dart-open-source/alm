@@ -153,10 +153,10 @@ class Alm {
     return DateTime.now();
   }
 
-  static String timeId() => '${timeymd()}@${timeFilter(timeStr())}-${randomString(10)}';
+  static String timeId() => '${timeFilter(timeymd())}@${timeFilter(timeStr())}-${randomString(10)}';
   static String timestampStr([dynamic input]) => timestamp(input).split('.').first;
   static String timeStr([dynamic input]) => timestamp(input).split(' ').last;
-  static String timeFilter([dynamic input]) => input.toString().replaceAll(':', '').replaceAll('.', '');
+  static String timeFilter([dynamic input]) => input.toString().replaceAll(':', '').replaceAll('.', '').replaceAll('-', '').replaceAll(' ', '').replaceAll('T', '');
 
   static String timestamp([dynamic input]) => timedate(input).toString();
 
