@@ -69,7 +69,16 @@ class Alm {
     }else if(input is String) {
       res=jsonDecode(input);
     }
-    return res?Map.from(res):null;
+    return res!=null?Map.from(res):null;
+  }
+  static List list(dynamic input){
+    dynamic res;
+    if(input is List){
+      res=input;
+    }else if(input is String) {
+      res=jsonDecode(input);
+    }
+    return res!=null?List.from(res):null;
   }
 
   ///
@@ -144,7 +153,10 @@ class Alm {
     return DateTime.now();
   }
 
+  static String timeId() => '${timeymd()}@${timeFilter(timeStr())}-${randomString(10)}';
   static String timestampStr([dynamic input]) => timestamp(input).split('.').first;
+  static String timeStr([dynamic input]) => timestamp(input).split(' ').last;
+  static String timeFilter([dynamic input]) => input.toString().replaceAll(':', '').replaceAll('.', '');
 
   static String timestamp([dynamic input]) => timedate(input).toString();
 
