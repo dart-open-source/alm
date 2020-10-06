@@ -1,6 +1,6 @@
 name: alm
 description: A Dart lib, Cool? Try use.
-version: 0.0.5
+version: 0.0.6
 homepage: https://gitee.com/darto/alm
 
 ## pub publish --server=https://pub.dartlang.org

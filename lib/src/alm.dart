@@ -78,18 +78,20 @@ class Alm {
   }
 
   static bool isMap(dynamic o, [dynamic key, dynamic val]) {
-    var res = o != null && o is Map;
-    if (res && key != null) {
-      if (isList(key)) {
-        for (var k in key) {
-          if (!o.containsKey(k)) return false;
+    if (o != null && o is Map) {
+      if(notNull(key)){
+        if (isList(key)) {
+          for (var k in key) {
+            if (!o.containsKey(k)) return false;
+          }
+        } else {
+          if (val != null) return o.containsKey(key) && o[key] == val;
+          return o.containsKey(key);
         }
-      } else {
-        if (val != null) return o.containsKey(key) && o[key] == val;
-        return o.containsKey(key);
       }
+      return true;
     }
-    return res;
+    return false;
   }
 
   ///Use [isMap] instead
@@ -109,6 +111,7 @@ class Alm {
     if (o != null && o is List) {
       if (isInt(gte)) return o.length >= gte;
       if (isInt(gt)) return o.length > gt;
+      return true;
     }
     return false;
   }
@@ -490,4 +493,6 @@ class Alm {
     }
     return input;
   }
+
+  static String json(dynamic input) =>jsonEncode(input,toEncodable: (o){return o.toString();});
 }
