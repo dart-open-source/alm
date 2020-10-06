@@ -1,11 +1,3 @@
-## A library for Dart developers.
- Smart tools, functions,converts,times,random,...
- String,List,Map,int, success, error....
- 
-
-## Usage
-
-```dart
 import 'package:alm/alm.dart';
 
 void main() {
@@ -29,9 +21,3 @@ void main() {
   //...
   print(Alm.timestamp());
 }
-
-```
-
-## References
-
-[google/....](https://google.com/) 

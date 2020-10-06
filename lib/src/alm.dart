@@ -14,12 +14,37 @@ class Alm {
 
   static bool isWeb = identical(0, 0.0);
 
-  static Future<dynamic> delaySecond([int second = 1, dynamic computation]) async => await Future.delayed(Duration(seconds: second), computation);
+  static Future<dynamic> delaySecond(
+          [int second = 1, dynamic computation]) async =>
+      await Future.delayed(Duration(seconds: second), computation);
 
   @deprecated
   static var onTimeoutReturnNull = () => null;
 
   static var onTimeoutNull = () => null;
+
+  static Map _config = {};
+  static Map get config {
+    var fileConfig = file('.config.json');
+    if (fileConfig.existsSync()) {
+      _config = jsonDecode(fileConfig.readAsStringSync());
+    } else {
+      fileConfig.writeAsStringSync(
+          jsonEncode({'version': version, 'timeId': timeId()}));
+    }
+    return _config;
+  }
+
+  ///ticker when using memory
+  static Map mapTicker = {};
+  static bool ticker(String key, Duration duration) {
+    if (mapTicker.containsKey(key)) {
+      int time = mapTicker[key];
+      if (Alm.timediff(time) < duration) return false;
+    }
+    mapTicker[key] = Alm.timeint();
+    return true;
+  }
 
   ///
   ///=========================== Type ===========================
@@ -32,13 +57,25 @@ class Alm {
 
   static bool notNull(dynamic o) => o != null;
 
-  static Map success(dynamic s, {dynamic msg = 'success'}) => {'msg': msg, 'code': 1, 'result': s};
+  static Map success(dynamic s, {dynamic msg = 'success'}) =>
+      {'msg': msg, 'code': 1, 'result': s};
 
   static bool isSuccess(dynamic o) => isMap(o, 'code') && o['code'] == 1;
 
-  static Map error(dynamic s, {dynamic msg = 'error'}) => {'msg': msg, 'code': -1, 'result': s};
+  static Map error(dynamic s, {dynamic msg = 'error'}) =>
+      {'msg': msg, 'code': -1, 'result': s};
 
   static bool isError(dynamic o) => !isSuccess(o);
+
+  static bool isInt(dynamic o, [dynamic val]) {
+    if (notNull(o) && o is int) {
+      if (notNull(val)) {
+        return val == o;
+      }
+      return true;
+    }
+    return false;
+  }
 
   static bool isMap(dynamic o, [dynamic key, dynamic val]) {
     var res = o != null && o is Map;
@@ -57,7 +94,8 @@ class Alm {
 
   ///Use [isMap] instead
   @deprecated
-  static bool notNullMap(dynamic o, [dynamic key, dynamic val]) => isMap(o, key, val);
+  static bool notNullMap(dynamic o, [dynamic key, dynamic val]) =>
+      isMap(o, key, val);
 
   ///Use [isList] instead
   @deprecated
@@ -67,7 +105,13 @@ class Alm {
   @deprecated
   static bool notNullString(dynamic o) => isString(o);
 
-  static bool isList(dynamic o) => o != null && o is List;
+  static bool isList(dynamic o, {int gte, int gt}) {
+    if (o != null && o is List) {
+      if (isInt(gte)) return o.length >= gte;
+      if (isInt(gt)) return o.length > gt;
+    }
+    return false;
+  }
 
   static bool isString(dynamic o) => o != null && o is String;
 
@@ -95,9 +139,10 @@ class Alm {
   ///=========================== File ===========================
   ///
 
-  static int fileSize(File target, {int defaultSize = -1}) => target.existsSync() ? target.lengthSync() : defaultSize;
+  static int fileSize(File target, {int defaultSize = -1}) =>
+      target.existsSync() ? target.lengthSync() : defaultSize;
 
-  File file(String path, {bool autoDir = false}) {
+  static File file(String path, {bool autoDir = false}) {
     var r = File(path);
     if (autoDir && !r.parent.existsSync()) r.parent.createSync(recursive: true);
     return r;
@@ -109,8 +154,10 @@ class Alm {
 
   static Random get kRandom => Random(DateTime.now().microsecondsSinceEpoch);
 
-  static String randomString(int length) {
-    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  static String randomString(int length, {bool isCapital = false}) {
+    var chars =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    if (isCapital) chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final buf = StringBuffer();
     for (var x = 0; x < length; x++) {
       buf.write(chars[kRandom.nextInt(chars.length)]);
@@ -118,13 +165,15 @@ class Alm {
     return buf.toString();
   }
 
-  static String randomName() => randomVal(Alm_DataNames) + ' ' + randomVal(Alm_DataNames);
+  static String randomName() =>
+      randomVal(Alm_DataNames) + ' ' + randomVal(Alm_DataNames);
 
   static String randomCountry() => randomVal(Alm_DataCountries);
 
   static dynamic randomKey(dynamic input) {
     if (input is List) return kRandom.nextInt(input.length);
-    if (input is Map) return input.keys.elementAt(kRandom.nextInt(input.keys.length));
+    if (input is Map)
+      return input.keys.elementAt(kRandom.nextInt(input.keys.length));
     return null;
   }
 
@@ -171,15 +220,30 @@ class Alm {
         }
       }
       if (input is int) return DateTime.fromMillisecondsSinceEpoch(input);
-      if (!(input is String)) throw Exception('Wops!? input only [int,duration,string]!!?@#@');
+      if (!(input is String))
+        throw Exception('Wops!? input only [int,duration,string]!!?@#@');
       return DateTime.parse(input);
     }
     return DateTime.now();
   }
 
-  static String timeId([dynamic input]) => timeFilter([timeymd(), timeStr(), input ?? randomString(10)].join('#'));
+  static int currentTime = 0;
+  static dynamic timer() {
+    currentTime = timeint();
+  }
 
-  static String timestampStr([dynamic input]) => timestamp(input).split('.').first;
+  static dynamic timerDiff() {
+    print(timediff(currentTime));
+  }
+
+  static String timeId([dynamic input, String jo = '-']) => [
+        filter(timeymd(), '-'),
+        filter(timeStr(), ':').split('.').first,
+        input ?? randomString(10, isCapital: true)
+      ].join(jo);
+
+  static String timestampStr([dynamic input]) =>
+      timestamp(input).split('.').first;
 
   static String timeStr([dynamic input]) => timestamp(input).split(' ').last;
 
@@ -187,7 +251,8 @@ class Alm {
 
   static String timestamp([dynamic input]) => timedate(input).toString();
 
-  static String timeymd([dynamic input]) => timedate(input).toIso8601String().split('T').first;
+  static String timeymd([dynamic input]) =>
+      timedate(input).toIso8601String().split('T').first;
 
   static int timeint([dynamic input]) => timedate(input).millisecondsSinceEpoch;
 
@@ -200,9 +265,11 @@ class Alm {
     return res;
   }
 
-  static int duration2time(String input) => DateTime.parse('${timeymd()} $input').millisecondsSinceEpoch;
+  static int duration2time(String input) =>
+      DateTime.parse('${timeymd()} $input').millisecondsSinceEpoch;
 
-  static String convertTime(int ms, {int fixed = 2}) => (ms / 1000).toStringAsFixed(fixed) + 's';
+  static String convertTime(int ms, {int fixed = 2}) =>
+      (ms / 1000).toStringAsFixed(fixed) + 's';
 
   static String durationFormat(Duration duration) {
     var str = duration.toString();
@@ -216,13 +283,20 @@ class Alm {
     if (totalSeconds < 0) return '00:00:00';
     var remainingHours = (totalSeconds / 3600).floor();
     var remainingMinutes = (totalSeconds / 60).floor() - remainingHours * 60;
-    var remainingSeconds = totalSeconds - remainingMinutes * 60 - remainingHours * 3600;
-    return remainingHours.toString().padLeft(2, '0') + ':' + remainingMinutes.toString().padLeft(2, '0') + ':' + remainingSeconds.toString().padLeft(2, '0');
+    var remainingSeconds =
+        totalSeconds - remainingMinutes * 60 - remainingHours * 3600;
+    return remainingHours.toString().padLeft(2, '0') +
+        ':' +
+        remainingMinutes.toString().padLeft(2, '0') +
+        ':' +
+        remainingSeconds.toString().padLeft(2, '0');
   }
 
   static String timestampRan({Duration after = Duration.zero}) {
     var i = DateTime.now().millisecondsSinceEpoch - after.inMilliseconds;
-    var dif = i - Duration(days: kRandom.nextInt(360)).inMilliseconds + kRandom.nextInt(1000);
+    var dif = i -
+        Duration(days: kRandom.nextInt(360)).inMilliseconds +
+        kRandom.nextInt(1000);
     return DateTime.fromMillisecondsSinceEpoch(dif).toString();
   }
 
@@ -271,7 +345,8 @@ class Alm {
   ///
   ///=========================== Utilities|Convert|Math ===========================
   ///
-  static int lerpInt(int minV, int maxV, int value) => max(minV, min(value, maxV));
+  static int lerpInt(int minV, int maxV, int value) =>
+      max(minV, min(value, maxV));
 
   static num degToRad(num deg) => deg * (pi / 180.0);
 
@@ -279,15 +354,20 @@ class Alm {
 
   static String base642str(String input) => utf8.decode(base64Decode(input));
 
-  static int any2int(dynamic o, {int defaultVal = -1}) => int.tryParse(o.toString().split('.').first) ?? defaultVal;
+  static int any2int(dynamic o, {int defaultVal = -1}) =>
+      int.tryParse(o.toString().split('.').first) ?? defaultVal;
 
-  static double any2double(dynamic o, {double defaultVal = -1.0}) => double.tryParse(o.toString()) ?? defaultVal;
+  static double any2double(dynamic o, {double defaultVal = -1.0}) =>
+      double.tryParse(o.toString()) ?? defaultVal;
 
-  static String priceStr(dynamic o, {String defaultPre = '\$'}) => defaultPre + any2double(o).toStringAsFixed(2);
+  static String priceStr(dynamic o, {String defaultPre = '\$'}) =>
+      defaultPre + any2double(o).toStringAsFixed(2);
 
-  static String int2hex(int n, {int padLeft = 8}) => n.toRadixString(16).padLeft(padLeft, '0');
+  static String int2hex(int n, {int padLeft = 8}) =>
+      n.toRadixString(16).padLeft(padLeft, '0');
 
-  static String str2md5(String input) => md5.convert(utf8.encode(input)).toString();
+  static String str2md5(String input) =>
+      md5.convert(utf8.encode(input)).toString();
 
   static String prettyJson(Map<String, dynamic> json, {int indent = 2}) {
     var spaces = ' ' * indent;
@@ -306,11 +386,19 @@ class Alm {
     return map;
   }
 
-  static void gitIgnoreUpdate(File gitignore, String path) {
-    if (gitignore.existsSync()) {
-      var liens = gitignore.readAsLinesSync();
+  ///Use [Alm.gitIgnore] instead of this.
+  @deprecated
+  static void gitIgnoreUpdate(File gitignoreF, String path)=>gitIgnore(path,gitignore: gitignoreF);
+
+
+  static void gitIgnore(String path,{File gitignore}) {
+    var _gitignore=gitignore??File('.gitignore');
+    if (_gitignore.existsSync()) {
+      var liens = _gitignore.readAsLinesSync();
       if (!liens.contains(path)) {
-        gitignore.writeAsStringSync(['', '#$path at ${timestampStr()}', path, ''].join('\n'), mode: FileMode.append);
+        _gitignore.writeAsStringSync(
+            ['', '#$path at ${timestampStr()}', path, ''].join('\n'),
+            mode: FileMode.append);
       }
     }
   }
@@ -358,10 +446,14 @@ class Alm {
     var Tb = Gb * 1024;
     var Pb = Tb * 1024;
     if (size < Kb || format == 'B') return size.toString() + 'b';
-    if (size < Mb || format == 'KB') return (size / Kb).toStringAsFixed(fixed) + 'kb';
-    if (size < Gb || format == 'MB') return (size / Mb).toStringAsFixed(fixed) + 'mb';
-    if (size < Tb || format == 'GB') return (size / Gb).toStringAsFixed(fixed) + 'gb';
-    if (size < Pb || format == 'TB') return (size / Tb).toStringAsFixed(fixed) + 'tb';
+    if (size < Mb || format == 'KB')
+      return (size / Kb).toStringAsFixed(fixed) + 'kb';
+    if (size < Gb || format == 'MB')
+      return (size / Mb).toStringAsFixed(fixed) + 'mb';
+    if (size < Tb || format == 'GB')
+      return (size / Gb).toStringAsFixed(fixed) + 'gb';
+    if (size < Pb || format == 'TB')
+      return (size / Tb).toStringAsFixed(fixed) + 'tb';
     return (size / Pb).toStringAsFixed(fixed) + 'pb';
   }
 
@@ -387,7 +479,8 @@ class Alm {
   }
 
   static String firstUpperCase(String str) {
-    if (str.length > 1) return (str.substring(0, 1).toUpperCase()) + str.substring(1);
+    if (str.length > 1)
+      return (str.substring(0, 1).toUpperCase()) + str.substring(1);
     return str;
   }
 
