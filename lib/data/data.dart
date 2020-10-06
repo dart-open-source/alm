@@ -1,7 +1,7 @@
 const Alm_DataNames = [
   'Alm',
-  'Aaliyah',
-  'Aaron',
+  'Aliyah',
+  'Aron',
   'Abagail',
   'Abbey',
   'Abbie',

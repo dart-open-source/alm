@@ -7,10 +7,7 @@ import 'package:alm/data/data.dart';
 import 'package:crypto/crypto.dart';
 
 ///
-///
-///
 /// [Alm] dart lib for developers tool
-///
 ///
 class Alm {
   static String version = '1.0.0';
@@ -18,7 +15,6 @@ class Alm {
   static bool isWeb = identical(0, 0.0);
 
   static Future<dynamic> delaySecond([int second = 1, dynamic computation]) async => await Future.delayed(Duration(seconds: second), computation);
-
 
   @deprecated
   static var onTimeoutReturnNull = () => null;
@@ -36,8 +32,16 @@ class Alm {
 
   static bool notNull(dynamic o) => o != null;
 
-  static bool notNullMap(dynamic o, [dynamic key, dynamic val]) {
-    var res = o != null && isMap(o);
+  static Map success(dynamic s, {dynamic msg = 'success'}) => {'msg': msg, 'code': 1, 'result': s};
+
+  static bool isSuccess(dynamic o) => isMap(o, 'code') && o['code'] == 1;
+
+  static Map error(dynamic s, {dynamic msg = 'error'}) => {'msg': msg, 'code': -1, 'result': s};
+
+  static bool isError(dynamic o) => !isSuccess(o);
+
+  static bool isMap(dynamic o, [dynamic key, dynamic val]) {
+    var res = o != null && o is Map;
     if (res && key != null) {
       if (isList(key)) {
         for (var k in key) {
@@ -48,37 +52,43 @@ class Alm {
         return o.containsKey(key);
       }
     }
-    ;
     return res;
   }
 
-  static bool notNullList(dynamic o) => o != null && isList(o);
+  ///Use [isMap] instead
+  @deprecated
+  static bool notNullMap(dynamic o, [dynamic key, dynamic val]) => isMap(o, key, val);
 
-  static bool notNullString(dynamic o) => o != null && isString(o);
+  ///Use [isList] instead
+  @deprecated
+  static bool notNullList(dynamic o) => isList(o);
 
-  static bool isMap(dynamic o) => o is Map;
+  ///Use [isString] instead
+  @deprecated
+  static bool notNullString(dynamic o) => isString(o);
 
-  static bool isList(dynamic o) => o is List;
+  static bool isList(dynamic o) => o != null && o is List;
 
-  static bool isString(dynamic o) => o is String;
+  static bool isString(dynamic o) => o != null && o is String;
 
-  static Map map(dynamic input){
+  static Map map(dynamic input) {
     dynamic res;
-    if(input is Map){
-      res=input;
-    }else if(input is String) {
-      res=jsonDecode(input);
+    if (input is Map) {
+      res = input;
+    } else if (input is String) {
+      res = jsonDecode(input);
     }
-    return res!=null?Map.from(res):null;
+    return res != null ? Map.from(res) : null;
   }
-  static List list(dynamic input){
+
+  static List list(dynamic input) {
     dynamic res;
-    if(input is List){
-      res=input;
-    }else if(input is String) {
-      res=jsonDecode(input);
+    if (input is List) {
+      res = input;
+    } else if (input is String) {
+      res = jsonDecode(input);
     }
-    return res!=null?List.from(res):null;
+    return res != null ? List.from(res) : null;
   }
 
   ///
@@ -97,7 +107,7 @@ class Alm {
   ///=========================== Random ===========================
   ///
 
-  static Random kRandom = Random(DateTime.now().millisecondsSinceEpoch);
+  static Random get kRandom => Random(DateTime.now().microsecondsSinceEpoch);
 
   static String randomString(int length) {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -108,34 +118,48 @@ class Alm {
     return buf.toString();
   }
 
-  static String randomName() => randomListElement(Alm_DataNames) + ' ' + randomListElement(Alm_DataNames);
+  static String randomName() => randomVal(Alm_DataNames) + ' ' + randomVal(Alm_DataNames);
 
-  static String randomCountry() => randomListElement(Alm_DataCountries);
+  static String randomCountry() => randomVal(Alm_DataCountries);
 
-  static dynamic randomKey(Map map) => map.keys.elementAt(kRandom.nextInt(map.length));
-
-  static dynamic randomMapElement(Map map) => map[randomKey(map)];
-
-  static dynamic randomListElement(List list) => list.elementAt(kRandom.nextInt(list.length));
-
-  static Iterable _randomList(List list) sync* {
-    var keys = list;
-    var rnd = Random();
-    while (keys.isNotEmpty) {
-      var index = rnd.nextInt(keys.length);
-      var key = keys[index];
-      keys[index] = keys.last;
-      keys.length--;
-      yield key;
-    }
+  static dynamic randomKey(dynamic input) {
+    if (input is List) return kRandom.nextInt(input.length);
+    if (input is Map) return input.keys.elementAt(kRandom.nextInt(input.keys.length));
+    return null;
   }
 
-  static List randomList(List list) => _randomList(list).toList();
+  static dynamic randomVal(dynamic input) {
+    if (input is List) return input.elementAt(randomKey(input));
+    if (input is Map) return input[randomKey(input)];
+    return null;
+  }
+
+  ///Use [randomVal] instead.
+  @deprecated
+  static dynamic randomMapElement(Map map) => randomVal(map);
+
+  ///Use [randomVal] instead.
+  @deprecated
+  static dynamic randomListElement(List list) => randomVal(list);
+
+  ///random list items not review
+  static List randomList(List list, [int size = 1]) {
+    var res = [];
+    var ks = [];
+    while (size > 0) {
+      var k = randomKey(list);
+      if (!ks.contains(k)) {
+        ks.add(k);
+        res.add(list[k]);
+        size--;
+      }
+    }
+    return res;
+  }
 
   ///
   ///=========================== Time ===========================
   ///
-
   static DateTime timedate([dynamic input]) {
     if (input != null) {
       if (input is Duration) {
@@ -153,10 +177,13 @@ class Alm {
     return DateTime.now();
   }
 
-  static String timeId() => '${timeFilter(timeymd())}@${timeFilter(timeStr())}-${randomString(10)}';
+  static String timeId([dynamic input]) => timeFilter([timeymd(), timeStr(), input ?? randomString(10)].join('#'));
+
   static String timestampStr([dynamic input]) => timestamp(input).split('.').first;
+
   static String timeStr([dynamic input]) => timestamp(input).split(' ').last;
-  static String timeFilter([dynamic input]) => input.toString().replaceAll(':', '').replaceAll('.', '').replaceAll('-', '').replaceAll(' ', '').replaceAll('T', '');
+
+  static String timeFilter([dynamic input]) => filter(input, ':.-T ');
 
   static String timestamp([dynamic input]) => timedate(input).toString();
 
@@ -362,5 +389,12 @@ class Alm {
   static String firstUpperCase(String str) {
     if (str.length > 1) return (str.substring(0, 1).toUpperCase()) + str.substring(1);
     return str;
+  }
+
+  static String filter(String input, [String sts = '']) {
+    for (var i = 0; i < sts.length; i++) {
+      input = input.replaceAll(sts[i], '');
+    }
+    return input;
   }
 }
