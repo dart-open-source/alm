@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'dart:math';
 
 import 'package:alm/data/data.dart';
@@ -79,7 +78,7 @@ class Alm {
 
   static bool isMap(dynamic o, [dynamic key, dynamic val]) {
     if (o != null && o is Map) {
-      if(notNull(key)){
+      if (notNull(key)) {
         if (isList(key)) {
           for (var k in key) {
             if (!o.containsKey(k)) return false;
@@ -107,10 +106,10 @@ class Alm {
   @deprecated
   static bool notNullString(dynamic o) => isString(o);
 
-  static bool isList(dynamic o, {int gte, int gt}) {
+  static bool isList(dynamic o, {int? gte, int? gt}) {
     if (o != null && o is List) {
-      if (isInt(gte)) return o.length >= gte;
-      if (isInt(gt)) return o.length > gt;
+      if (gte != null && isInt(gte)) return o.length >= gte;
+      if (gt != null && isInt(gt)) return o.length > gt;
       return true;
     }
     return false;
@@ -118,7 +117,7 @@ class Alm {
 
   static bool isString(dynamic o) => o != null && o is String;
 
-  static Map map(dynamic input) {
+  static Map? map(dynamic input) {
     dynamic res;
     if (input is Map) {
       res = input;
@@ -128,7 +127,7 @@ class Alm {
     return res != null ? Map.from(res) : null;
   }
 
-  static List list(dynamic input) {
+  static List? list(dynamic input) {
     dynamic res;
     if (input is List) {
       res = input;
@@ -260,10 +259,10 @@ class Alm {
   static int timeint([dynamic input]) => timedate(input).millisecondsSinceEpoch;
 
   /// start only duration and millisecond
-  static Duration timediff([dynamic start, int end]) {
+  static Duration timediff([dynamic start, int? end]) {
     if (start is String) start = duration2time(start);
     var origin = end ?? timeint();
-    var res = Duration(milliseconds: (origin - start));
+    var res = Duration(milliseconds: (origin - int.parse(start)));
     if (res == Duration.zero) return Duration(milliseconds: 1);
     return res;
   }
@@ -307,7 +306,7 @@ class Alm {
   ///=========================== Token ===========================
   ///
 
-  static String tokenGen(String pass, {Duration duration}) {
+  static String tokenGen(String pass, {Duration? duration}) {
     var time = duration ?? Duration(days: 7);
     return str2base64([pass, time.inMilliseconds, timeint()].join(':'));
   }
@@ -324,7 +323,7 @@ class Alm {
     }
   }
 
-  static Map tokenDecode(String token) {
+  static Map? tokenDecode(String token) {
     try {
       var res = <String, dynamic>{};
       var tokens = base642str(token).split(':');
@@ -391,11 +390,11 @@ class Alm {
 
   ///Use [Alm.gitIgnore] instead of this.
   @deprecated
-  static void gitIgnoreUpdate(File gitignoreF, String path)=>gitIgnore(path,gitignore: gitignoreF);
+  static void gitIgnoreUpdate(File gitignoreF, String path) =>
+      gitIgnore(path, gitignore: gitignoreF);
 
-
-  static void gitIgnore(String path,{File gitignore}) {
-    var _gitignore=gitignore??File('.gitignore');
+  static void gitIgnore(String path, {File? gitignore}) {
+    var _gitignore = gitignore ?? File('.gitignore');
     if (_gitignore.existsSync()) {
       var liens = _gitignore.readAsLinesSync();
       if (!liens.contains(path)) {
@@ -469,7 +468,7 @@ class Alm {
     return '00000$n';
   }
 
-  static String strcut(String input, {int len}) {
+  static String strcut(String input, {int? len}) {
     if (len != null) return input.substring(0, min(len, input.length));
     return input;
   }
@@ -494,5 +493,7 @@ class Alm {
     return input;
   }
 
-  static String json(dynamic input) =>jsonEncode(input,toEncodable: (o){return o.toString();});
+  static String json(dynamic input) => jsonEncode(input, toEncodable: (o) {
+        return o.toString();
+      });
 }
