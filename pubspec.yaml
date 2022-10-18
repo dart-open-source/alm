@@ -1,12 +1,12 @@
 name: alm
 description: A Dart lib, Cool? Try use.
-version: 0.0.6
+version: 0.0.7
 homepage: https://gitee.com/darto/alm
 
 ## pub publish --server=https://pub.dartlang.org
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
   convert: ^3.1.1
